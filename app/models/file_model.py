@@ -1,6 +1,7 @@
 from app import db
 from datetime import datetime
 
+
 class FileRecord(db.Model):
     __tablename__ = 'file_records'  # 设置表名
 

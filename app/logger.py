@@ -14,7 +14,7 @@ LOG_FILE = os.path.join(LOG_DIR, 'file_processing.log')
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 # 创建 RotatingFileHandler，最大文件大小10MB，保留3个备份
-handler = RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=3)
+handler = RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=3,encoding='GBK')
 
 # 设置日志级别为 DEBUG
 handler.setLevel(logging.INFO)

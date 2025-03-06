@@ -2,6 +2,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List
 from flask import jsonify
 
+
 @dataclass
 class Base:
     """基础类，提供将对象转换为字典或 JSON 格式的方法"""
@@ -54,5 +55,6 @@ class ListResponse(BaseResponse):
 # 可用于测试是否返回期望的格式
 if __name__ == "__main__":
     import json
+
     print(json.dumps(BaseResponse(data=dict()).asdict()))
     print(json.dumps(ListResponse(data=ListData(total=0, items=[])).asdict()))
