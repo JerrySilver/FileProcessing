@@ -11,9 +11,10 @@ class Config:
 
     # RabbitMQ 配置
     RABBITMQ_HOST = 'localhost'  # RabbitMQ 服务地址
-    RABBITMQ_QUEUE = 'file_task_queue_durable_test02'  # 队列名称
+    RABBITMQ_QUEUE = 'file_mark_test01'  # 队列名称
     RABBITMQ_USER = 'admin'  # 默认用户
     RABBITMQ_PASSWORD = 'admin'  # 默认密码
 
-
+    #获取文件接口
+    EXTERNAL_FILE_LIST_URL = ""
 

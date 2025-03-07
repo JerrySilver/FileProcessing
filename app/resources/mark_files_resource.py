@@ -1,63 +1,55 @@
+import json
 from flask_restful import Resource
-from flask import request, jsonify
+from flask import request
 from marshmallow import ValidationError
-from app.schemas.file_schema import FileListSchema  # 假设用于请求和响应的 Schema
-from app.services.file_service import mark_files
+
+from app.logger import get_logger
+from app.schemas.file_schema import FileListSchema
 from app.utils.response_container import BaseResponse
-from app.logger import logger  # 引入日志记录器
+from app.services.rabbitmq_service import rabbitmq_rpc
+
+# 获取日志记录器
+logger = get_logger()
+
 
 class MarkFilesResource(Resource):
     def post(self):
-        logger.info("MarkFilesResource POST 请求开始")
         schema = FileListSchema()
         try:
-            # 使用 Schema 解析并验证请求数据（这里建议使用 request.get_json() 获取 JSON 数据）
             data = schema.load(request.get_json())
-            logger.info(f"请求数据解析成功：{data}")
         except ValidationError as err:
-            logger.error(f"请求数据解析失败：{err.messages}")
             response = BaseResponse(
                 code=400,
                 status=400,
-                message="数据解析失败",
+                message="文件数据参数有错",
                 data={"error": err.messages}
             )
+            logger.error("文件数据参数有误，请检查: %s", err.messages)
             return response.to_json()
 
-        # 从解析后的数据中获取 fileModelList
-        file_list = data.get("fileModelList")
-        logger.info(f"获取到的文件列表：{file_list}")
-
+        # 组装 RPC 请求消息：包含任务类型、文件列表和路径类型
+        task_message = {
+            "task_type": "mark_files",
+            "fileModelList": data.get("fileModelList"),
+        }
         try:
-            marking_results = mark_files(file_list)
-            logger.info(f"打标结果：{marking_results}")
-            result = []
-            # 检查打标结果数量是否与文件列表一致
-            if len(marking_results) != len(file_list):
-                error_msg = "打标结果与文件列表数量不匹配"
-                logger.error(error_msg)
-                raise Exception(error_msg)
-            # 将每个文件的打标结果添加到返回数据中
-            for idx, file_item in enumerate(file_list):
-                # 构造一个包含文件 ID 和打标结果的字典
-                marked_file = {"neid": file_item['neid'], "tag": marking_results[idx]}
-                result.append(marked_file)
-            logger.info(f"最终返回的打标数据：{result}")
+            rpc_response = rabbitmq_rpc.call(json.dumps(task_message))
+            result_data = json.loads(rpc_response)
         except Exception as e:
-            logger.error(f"打标出错：{str(e)}")
             response = BaseResponse(
                 code=500,
                 status=500,
-                message="打标出错",
+                message="打标任务处理出错",
                 data={"error": str(e)}
             )
+            logger.error("打标任务处理出错", e)
             return response.to_json()
 
-        response_data = {
-            # "errcode": "0",
-            # "errmsg": "ok",
-            "result": result,
-        }
-        logger.info("MarkFilesResource POST 请求处理完毕，返回数据")
-        response = BaseResponse(data=response_data)
+        # response_data = {
+        #     # "errcode": "0",
+        #     # "errmsg": "ok",
+        #     "result": result_data
+        # }
+        response = BaseResponse(data=result_data)
+        logger.info("成功完成文件打标: %s", result_data)
         return response.to_json()

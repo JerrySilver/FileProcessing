@@ -8,7 +8,7 @@ if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
 # 设置日志文件路径
-LOG_FILE = os.path.join(LOG_DIR, 'file_processing.log')
+LOG_FILE = os.path.join(LOG_DIR, 'file_marking_test03.log')
 
 # 设置日志格式
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
